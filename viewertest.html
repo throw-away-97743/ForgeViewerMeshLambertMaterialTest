@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <title>Test</title>
+    <style>
+        * {
+            margin: 0;
+            border: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+    </style>
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js?v=7.*"></script>
+</head>
+<body style="background-color:rgb(23, 25, 29);">
+<div style="max-width:1000px;margin:0 auto;height:calc(100% - 200px);">
+    <div id="ViewerContainerDiv" style="height:100%;"></div>
+</div>
+<div style="height:200px;"></div>
+<script>
+    Autodesk.Viewing.Initializer({env: "Local"}, function () {
+        const ViewerContainerDiv = document.getElementById("ViewerContainerDiv");
+        const Viewer = new Autodesk.Viewing.GuiViewer3D(ViewerContainerDiv, {});
+        Viewer.initialize({});
+        const modelOptions = {};
+        Viewer.loadModel("sphere001/output.svf", modelOptions, function () {
+        });
+    });
+</script>
+</body>
+</html>
