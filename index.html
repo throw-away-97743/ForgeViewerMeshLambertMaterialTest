@@ -64,18 +64,20 @@
             const matMan = Viewer.impl.matman();
             const lambertMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
             lambertMaterial.packedNormals = true;
+            lambertMaterial.envMap = null;
             const basicMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
             basicMaterial.packedNormals = true;
+            lambertMaterial.envMap = null;
             matMan.addMaterial("lambertMaterial", lambertMaterial, true);
             matMan.addMaterial("basicMaterial", basicMaterial, true);
-            const LambertMaterialButton = document.getElementById("LambertMaterialButton");
             const BasicMaterialButton = document.getElementById("BasicMaterialButton");
-            LambertMaterialButton.onclick = function () {
-                fragIds.forEach(fragId => fragList.setMaterial(parseInt(fragId), lambertMaterial));
-                Viewer.impl.invalidate(true);
-            };
+            const LambertMaterialButton = document.getElementById("LambertMaterialButton");
             BasicMaterialButton.onclick = function () {
                 fragIds.forEach(fragId => fragList.setMaterial(parseInt(fragId), basicMaterial));
+                Viewer.impl.invalidate(true);
+            };
+            LambertMaterialButton.onclick = function () {
+                fragIds.forEach(fragId => fragList.setMaterial(parseInt(fragId), lambertMaterial));
                 Viewer.impl.invalidate(true);
             };
         });
