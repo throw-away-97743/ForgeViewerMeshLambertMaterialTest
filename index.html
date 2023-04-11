@@ -63,7 +63,9 @@
             const fragIds = Object.keys(fragList.fragments.fragId2dbId);
             const matMan = Viewer.impl.matman();
             const lambertMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
+            lambertMaterial.packedNormals = true;
             const basicMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
+            basicMaterial.packedNormals = true;
             matMan.addNonHDRMaterial("lambertMaterial", lambertMaterial);
             matMan.addNonHDRMaterial("basicMaterial", basicMaterial);
             const LambertMaterialButton = document.getElementById("LambertMaterialButton");
