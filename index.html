@@ -76,10 +76,12 @@
             const LambertMaterialButton = document.getElementById("LambertMaterialButton");
             BasicMaterialButton.onclick = function () {
                 fragIds.forEach(fragId => fragList.setMaterial(parseInt(fragId), basicMaterial));
+                model.unconsolidate();
                 Viewer.impl.invalidate(true);
             };
             LambertMaterialButton.onclick = function () {
                 fragIds.forEach(fragId => fragList.setMaterial(parseInt(fragId), lambertMaterial));
+                model.unconsolidate();
                 Viewer.impl.invalidate(true);
             };
         });
