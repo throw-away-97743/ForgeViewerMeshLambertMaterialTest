@@ -69,6 +69,7 @@
             const LambertMaterialButton = document.getElementById("LambertMaterialButton");
             const BasicMaterialButton = document.getElementById("BasicMaterialButton");
             LambertMaterialButton.onclick = function () {
+                console.log(fragIds);
                 fragIds.forEach(fragId => fragList.setMaterial(fragId, lambertMaterial));
             };
             BasicMaterialButton.onclick = function () {
