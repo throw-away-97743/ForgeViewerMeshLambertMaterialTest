@@ -72,8 +72,8 @@
             basicMaterial.packedNormals = true;
             basicMaterial.envMap = null;
             lambertMaterial.reflectivity = 0;
-            matMan.addMaterial("lambertMaterial", lambertMaterial, true);
-            matMan.addMaterial("basicMaterial", basicMaterial, true);
+            matMan.addNonHDRMaterial("lambertMaterial", lambertMaterial, true);
+            matMan.addNonHDRMaterial("basicMaterial", basicMaterial, true);
             const BasicMaterialButton = document.getElementById("BasicMaterialButton");
             const LambertMaterialButton = document.getElementById("LambertMaterialButton");
             BasicMaterialButton.onclick = function () {
