@@ -57,29 +57,37 @@
         const ViewerContainerDiv = document.getElementById("ViewerContainerDiv");
         const Viewer = new Autodesk.Viewing.GuiViewer3D(ViewerContainerDiv, {});
         Viewer.initialize({});
-        const modelOptions = {};
+        const modelOptions = {
+            useConsolidation: false
+        };
         Viewer.loadModel("sphere001/output.svf", modelOptions, function (model) {
+            const matMan = Viewer.impl.matman();
             const fragList = model.getFragmentList();
             const fragIds = Object.keys(fragList.fragments.fragId2dbId);
-            const matMan = Viewer.impl.matman();
-            const lambertMaterial = new THREE.MeshLambertMaterial();
-            lambertMaterial.color = new THREE.Color(0xff0000);
-            //lambertMaterial.packedNormals = true;
-            //lambertMaterial.reflectivity = 0;
+            //#####################################################
+            //#####################################################
             const basicMaterial = new LMV.LMVMeshBasicMaterial();
             basicMaterial.color = new THREE.Color(0xff0000);
-            //basicMaterial.packedNormals = true;
-            //lambertMaterial.reflectivity = 1;
-            matMan.addMaterial("lambertMaterial", lambertMaterial, true);
             matMan.addMaterial("basicMaterial", basicMaterial, true);
-            lambertMaterial.envMap = null;
             basicMaterial.envMap = null;
+            //basicMaterial.packedNormals = true;
+            //basicMaterial.reflectivity = 1;
+            basicMaterial.needsUpdate = true;
             const BasicMaterialButton = document.getElementById("BasicMaterialButton");
-            const LambertMaterialButton = document.getElementById("LambertMaterialButton");
             BasicMaterialButton.onclick = function () {
                 fragIds.forEach(fragId => fragList.setMaterial(fragId, basicMaterial));
                 Viewer.impl.invalidate(true);
             };
+            //#####################################################
+            //#####################################################
+            const lambertMaterial = new THREE.MeshLambertMaterial();
+            lambertMaterial.color = new THREE.Color(0xff0000);
+            matMan.addMaterial("lambertMaterial", lambertMaterial, true);
+            lambertMaterial.envMap = null;
+            //lambertMaterial.packedNormals = true;
+            //lambertMaterial.reflectivity = 1;
+            lambertMaterial.needsUpdate = true;
+            const LambertMaterialButton = document.getElementById("LambertMaterialButton");
             LambertMaterialButton.onclick = function () {
                 fragIds.forEach(fragId => fragList.setMaterial(fragId, lambertMaterial));
                 Viewer.impl.invalidate(true);
