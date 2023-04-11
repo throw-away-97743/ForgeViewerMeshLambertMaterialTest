@@ -56,7 +56,25 @@
     Autodesk.Viewing.Initializer({env: "Local"}, function () {
         const ViewerContainerDiv = document.getElementById("ViewerContainerDiv");
         const Viewer = new Autodesk.Viewing.GuiViewer3D(ViewerContainerDiv, {});
-        Viewer.initialize({});
+        const RenderOptions = {
+            enableContextRestore: undefined,
+            glrenderer: undefined,
+            materialManager: undefined,
+            offscreen: undefined,
+            removeAlphaInOutput: undefined,
+            renderer: undefined,
+            useIdBufferSelection: true,
+            webglInitParams: {
+                canvas: null,
+                antialias: profileSettings.settings.antialiasing,
+                alpha: true,
+                premultipliedAlpha: false,
+                preserveDrawingBuffer: true,
+                stencil: false,
+                depth: true
+            }
+        };
+        Viewer.initialize(RenderOptions);
         const modelOptions = {
             useConsolidation: false
         };
