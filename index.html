@@ -33,7 +33,7 @@
             text-align: center;
         }
     </style>
-    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js?v=7.*"></script>
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.js?v=7.*"></script>
     <link rel="stylesheet" type="text/css" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=7.*"/>
 </head>
 <body style="background-color:rgb(23, 25, 29);">
@@ -66,10 +66,12 @@
             lambertMaterial.color = new THREE.Color(0xff0000);
             lambertMaterial.packedNormals = true;
             lambertMaterial.envMap = null;
+            lambertMaterial.reflectivity = 0;
             const basicMaterial = new THREE.MeshBasicMaterial();
             basicMaterial.color = new THREE.Color(0xff0000);
             basicMaterial.packedNormals = true;
             basicMaterial.envMap = null;
+            lambertMaterial.reflectivity = 0;
             matMan.addMaterial("lambertMaterial", lambertMaterial, true);
             matMan.addMaterial("basicMaterial", basicMaterial, true);
             const BasicMaterialButton = document.getElementById("BasicMaterialButton");
