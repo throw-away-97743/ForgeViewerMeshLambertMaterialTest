@@ -66,7 +66,7 @@
             const fragIds = Object.keys(fragList.fragments.fragId2dbId);
             //#####################################################
             //#####################################################
-            const basicMaterial = new LMV.LMVMeshBasicMaterial();
+            const basicMaterial = new THREE.MeshBasicMaterial();
             basicMaterial.color = new THREE.Color(0xff0000);
             matMan.addMaterial("basicMaterial", basicMaterial, true);
             basicMaterial.envMap = null;
