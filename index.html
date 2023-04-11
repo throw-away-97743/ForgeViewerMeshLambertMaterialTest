@@ -67,13 +67,14 @@
             lambertMaterial.packedNormals = true;
             lambertMaterial.envMap = null;
             lambertMaterial.reflectivity = 0;
-            const basicMaterial = new THREE.MeshBasicMaterial();
+            lambertMaterial.shading = 0;
+            const basicMaterial = new LMV.LMVMeshBasicMaterial();
             basicMaterial.color = new THREE.Color(0xff0000);
             basicMaterial.packedNormals = true;
             basicMaterial.envMap = null;
             lambertMaterial.reflectivity = 0;
-            matMan.addNonHDRMaterial("lambertMaterial", lambertMaterial, true);
-            matMan.addNonHDRMaterial("basicMaterial", basicMaterial, true);
+            matMan.addMaterial("lambertMaterial", lambertMaterial, true);
+            matMan.addMaterial("basicMaterial", basicMaterial, true);
             const BasicMaterialButton = document.getElementById("BasicMaterialButton");
             const LambertMaterialButton = document.getElementById("LambertMaterialButton");
             BasicMaterialButton.onclick = function () {
