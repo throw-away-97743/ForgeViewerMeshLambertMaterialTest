@@ -2,34 +2,78 @@
 <html lang="en-us">
 <head>
     <title>Test</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
-        * {
+        *:not(button) {
             margin: 0;
             border: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        button {
+            cursor: pointer;
+            padding: 10px 20px;
+        }
+
         html, body {
             height: 100%;
         }
+
+        table {
+            width: 100%;
+            table-layout: auto;
+            border-collapse: collapse;
+            border-spacing: 0;
+            empty-cells: show;
+        }
+
+        td, th {
+            vertical-align: middle;
+            text-align: center;
+        }
     </style>
     <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js?v=7.*"></script>
-    <link rel="stylesheet" type="text/css" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=7.*" />
+    <link rel="stylesheet" type="text/css" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=7.*"/>
 </head>
 <body style="background-color:rgb(23, 25, 29);">
 <div style="position:relative;max-width:1000px;margin:0 auto;height:calc(100% - 200px);">
     <div id="ViewerContainerDiv" style="position:relative;width:100%;height:100%;"></div>
 </div>
-<div style="height:200px;"></div>
+<div style="height:200px;padding-top:20px;">
+    <table style="width:0.01%;margin:0 auto;">
+        <tr>
+            <td style="padding-right:20px;">
+                <button id="LambertMaterialButton" style="">Click to apply a MeshBasicMaterial<br/>to the sphere</button>
+            </td>
+            <td style="">
+                <button id="BasicMaterialButton" style="">Click to apply a MeshLambertMaterial<br/>to the sphere</button>
+            </td>
+        </tr>
+    </table>
+</div>
 <script>
     Autodesk.Viewing.Initializer({env: "Local"}, function () {
         const ViewerContainerDiv = document.getElementById("ViewerContainerDiv");
         const Viewer = new Autodesk.Viewing.GuiViewer3D(ViewerContainerDiv, {});
         Viewer.initialize({});
         const modelOptions = {};
-        Viewer.loadModel("sphere001/output.svf", modelOptions, function () {
+        Viewer.loadModel("sphere001/output.svf", modelOptions, function (model) {
+            const fragList = model.getFragmentList();
+            const fragIds = Object.keys(fragList.fragments.fragId2dbId);
+            const matMan = Viewer.impl.matman();
+            const lambertMaterial = new THREE.MeshLambertMaterial();
+            const basicMaterial = new THREE.MeshBasicMaterial();
+            matMan.addMaterial().addNonHDRMaterial("lambertMaterial", lambertMaterial);
+            matMan.addMaterial().addNonHDRMaterial("basicMaterial", basicMaterial);
+            const LambertMaterialButton = document.getElementById("LambertMaterialButton");
+            const BasicMaterialButton = document.getElementById("BasicMaterialButton");
+            LambertMaterialButton.onclick = function () {
+                fragIds.forEach(fragId => fragList.setMaterial(fragId, lambertMaterial));
+            };
+            BasicMaterialButton.onclick = function () {
+                fragIds.forEach(fragId => fragList.setMaterial(fragId, basicMaterial));
+            };
         });
     });
 </script>
