@@ -62,12 +62,14 @@
             const fragList = model.getFragmentList();
             const fragIds = Object.keys(fragList.fragments.fragId2dbId);
             const matMan = Viewer.impl.matman();
-            const lambertMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
+            const lambertMaterial = new THREE.MeshLambertMaterial();
+            lambertMaterial.color = new THREE.Color(0xff0000);
             lambertMaterial.packedNormals = true;
             lambertMaterial.envMap = null;
-            const basicMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
+            const basicMaterial = new THREE.MeshBasicMaterial();
+            basicMaterial.color = new THREE.Color(0xff0000);
             basicMaterial.packedNormals = true;
-            lambertMaterial.envMap = null;
+            basicMaterial.envMap = null;
             matMan.addMaterial("lambertMaterial", lambertMaterial, true);
             matMan.addMaterial("basicMaterial", basicMaterial, true);
             const BasicMaterialButton = document.getElementById("BasicMaterialButton");
