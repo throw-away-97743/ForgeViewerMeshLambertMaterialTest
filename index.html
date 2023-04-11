@@ -64,8 +64,8 @@
             const matMan = Viewer.impl.matman();
             const lambertMaterial = new THREE.MeshLambertMaterial();
             const basicMaterial = new THREE.MeshBasicMaterial();
-            matMan.addMaterial().addNonHDRMaterial("lambertMaterial", lambertMaterial);
-            matMan.addMaterial().addNonHDRMaterial("basicMaterial", basicMaterial);
+            matMan.addNonHDRMaterial("lambertMaterial", lambertMaterial);
+            matMan.addNonHDRMaterial("basicMaterial", basicMaterial);
             const LambertMaterialButton = document.getElementById("LambertMaterialButton");
             const BasicMaterialButton = document.getElementById("BasicMaterialButton");
             LambertMaterialButton.onclick = function () {
