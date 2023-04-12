@@ -14,6 +14,7 @@
         button {
             cursor: pointer;
             padding: 10px 20px;
+            border-radius: 10px;
         }
 
         html, body {
@@ -37,32 +38,40 @@
     <link rel="stylesheet" type="text/css" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=7.*"/>
 </head>
 <body style="background-color:rgb(23, 25, 29);">
-<div style="position:relative;max-width:1000px;margin:0 auto;height:calc(100% - 200px);">
-    <div id="ViewerContainerDiv" style="position:relative;width:100%;height:100%;"></div>
+<div style="position:relative;margin:0 auto;max-width:100%;height:calc(100% - 200px);background-color:#ffffff;">
+    <div id="ViewerContainerDiv" style="position:absolute;width:100%;height:100%;"></div>
 </div>
 <div style="height:200px;padding-top:20px;">
     <table style="width:0.01%;margin:0 auto;">
         <tr>
             <td style="padding-right:20px;">
-                <button id="LambertMaterialButton" style="">Click to apply a MeshBasicMaterial<br/>to the sphere</button>
+                <button id="BasicMaterialButton" style="">Click to apply a MeshBasicMaterial<br/>to the sphere</button>
             </td>
             <td style="">
-                <button id="BasicMaterialButton" style="">Click to apply a MeshLambertMaterial<br/>to the sphere</button>
+                <button id="LambertMaterialButton" style="">Click to apply a MeshLambertMaterial<br/>to the sphere</button>
             </td>
         </tr>
     </table>
 </div>
 <script>
+    const profileSettings =/**@type{ProfileSettings}*/{
+        name: "mySettings",
+        settings: {
+            ambientShadows: false,
+            antialiasing: false,
+            groundReflection: false,
+            groundShadow: false,
+            reverseMouseZoomDir: true
+        },
+        extensions: {
+            load: ["Autodesk.ViewCubeUi"],
+            unload: []
+        }
+    };
     Autodesk.Viewing.Initializer({env: "Local"}, function () {
         const ViewerContainerDiv = document.getElementById("ViewerContainerDiv");
         const Viewer = new Autodesk.Viewing.GuiViewer3D(ViewerContainerDiv, {});
         const RenderOptions = {
-            enableContextRestore: undefined,
-            glrenderer: undefined,
-            materialManager: undefined,
-            offscreen: undefined,
-            removeAlphaInOutput: undefined,
-            renderer: undefined,
             useIdBufferSelection: true,
             webglInitParams: {
                 canvas: null,
@@ -75,42 +84,78 @@
             }
         };
         Viewer.initialize(RenderOptions);
+        Viewer.setProfile(new Autodesk.Viewing.Profile(profileSettings));
+        Viewer.setBackgroundOpacity(0);
+        (function () {
+            // make the background of the canvas and all parent elements up to the container transparent
+            let Elem = Viewer.canvas;
+            while (Elem !== ViewerContainerDiv) {
+                Elem.style.backgroundColor = "transparent";
+                Elem.style.backgroundImage = "none";
+                Elem = Elem.parentNode;
+            }
+        })();
         const modelOptions = {
-            useConsolidation: false
+            createWireframe: false,
+            disable3DModelLayers: true,
+            disablePrecomputedNodeBoxes: true,
+            keepCurrentModels: true,
+            loadAsHidden: false,
+            loadInstanceTree: false,
+            onMeshReceived: onMeshReceived,
+            packNormals: true,
+            preserveView: false,
+            skipExternalIds: true,
+            skipHiddenFragments: true,
+            skipPrefs: true,
+            underlayRaster: false,
+            useConsolidation: false,
         };
-        Viewer.loadModel("sphere001/output.svf", modelOptions, function (model) {
-            const matMan = Viewer.impl.matman();
-            const fragList = model.getFragmentList();
-            const fragIds = Object.keys(fragList.fragments.fragId2dbId);
-            //#####################################################
-            //#####################################################
-            const basicMaterial = new THREE.MeshBasicMaterial();
-            basicMaterial.color = new THREE.Color(0xff0000);
-            matMan.addMaterial("basicMaterial", basicMaterial, true);
-            basicMaterial.envMap = null;
-            //basicMaterial.packedNormals = true;
-            //basicMaterial.reflectivity = 1;
-            basicMaterial.needsUpdate = true;
-            const BasicMaterialButton = document.getElementById("BasicMaterialButton");
-            BasicMaterialButton.onclick = function () {
-                fragIds.forEach(fragId => fragList.setMaterial(fragId, basicMaterial));
-                Viewer.impl.invalidate(true);
-            };
-            //#####################################################
-            //#####################################################
-            const lambertMaterial = new THREE.MeshLambertMaterial();
-            lambertMaterial.color = new THREE.Color(0xff0000);
-            matMan.addMaterial("lambertMaterial", lambertMaterial, true);
-            lambertMaterial.envMap = null;
-            //lambertMaterial.packedNormals = true;
-            //lambertMaterial.reflectivity = 1;
-            lambertMaterial.needsUpdate = true;
-            const LambertMaterialButton = document.getElementById("LambertMaterialButton");
-            LambertMaterialButton.onclick = function () {
-                fragIds.forEach(fragId => fragList.setMaterial(fragId, lambertMaterial));
-                Viewer.impl.invalidate(true);
-            };
+        let totalFragmentsReceived = 0;
+        Viewer.loadModel("sphere001/output.svf", modelOptions, function () {
+        }, function () {
+            console.error("could not load model for some reason");
         });
+
+        function onMeshReceived(model, geomId, fragIndexes) {
+            totalFragmentsReceived += fragIndexes.length;
+            const fragList = model.getFragmentList();
+            const totalFragmentsExpected = fragList.fragments.fragId2dbId.length;
+            if (totalFragmentsReceived === totalFragmentsExpected) {
+                const matMan = Viewer.impl.matman();
+                const fragIds = Object.keys(fragList.fragments.fragId2dbId);
+                //#####################################################
+                //#####################################################
+                const basicMaterial = new THREE.MeshBasicMaterial();
+                basicMaterial.color = new THREE.Color(0xff0000);
+                matMan.addNonHDRMaterial("basicMaterial", basicMaterial);
+                basicMaterial.envMap = null;
+                //basicMaterial.packedNormals = true;
+                //basicMaterial.reflectivity = 1;
+                basicMaterial.needsUpdate = true;
+                const BasicMaterialButton = document.getElementById("BasicMaterialButton");
+                BasicMaterialButton.onclick = function () {
+                    fragIds.forEach(fragId => fragList.setMaterial(fragId, basicMaterial));
+                    Viewer.impl.invalidate(true);
+                };
+                console.log(basicMaterial);
+                //#####################################################
+                //#####################################################
+                const lambertMaterial = new THREE.MeshLambertMaterial();
+                lambertMaterial.color = new THREE.Color(0xff0000);
+                matMan.addNonHDRMaterial("lambertMaterial", lambertMaterial);
+                lambertMaterial.envMap = null;
+                //lambertMaterial.packedNormals = true;
+                //lambertMaterial.reflectivity = 1;
+                lambertMaterial.needsUpdate = true;
+                const LambertMaterialButton = document.getElementById("LambertMaterialButton");
+                LambertMaterialButton.onclick = function () {
+                    fragIds.forEach(fragId => fragList.setMaterial(fragId, lambertMaterial));
+                    Viewer.impl.invalidate(true);
+                };
+                console.log(lambertMaterial);
+            }
+        }
     });
 </script>
 </body>
