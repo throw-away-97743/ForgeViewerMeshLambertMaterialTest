@@ -9,6 +9,10 @@
             border: 0;
             padding: 0;
             box-sizing: border-box;
+            color: inherit;
+            font-family: inherit;
+            font-size: inherit;
+            text-align: left;
         }
 
         button {
@@ -19,6 +23,13 @@
 
         html, body {
             height: 100%;
+        }
+
+        body {
+            background-color: rgb(23, 25, 29);
+            color: rgb(244, 244, 246);
+            font-family: 'Segoe UI', 'Lucida Grande', -apple-system, BlinkMacSystemFont, 'Liberation Sans', sans-serif;
+            font-size: 14px;
         }
 
         table {
@@ -34,21 +45,33 @@
             text-align: center;
         }
     </style>
-    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.js?v=7.*"></script>
-    <link rel="stylesheet" type="text/css" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=7.*"/>
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js?v=7.87.0"></script>
+    <link rel="stylesheet" type="text/css" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=7.87.0"/>
 </head>
-<body style="background-color:rgb(23, 25, 29);">
-<div style="position:relative;margin:0 auto;max-width:100%;height:calc(100% - 200px);background-color:#ffffff;">
+<body style="overflow:hidden;">
+<div style="height:50px;line-height:50px;text-align:center;font-weight:bold;font-size:20px;white-space:nowrap;">
+    Forge Viewer Basic/Lambert Material Example
+</div>
+<div style="position:relative;margin:0 auto;max-width:100%;height:calc(100% - (50px + 200px));background-color:#ffffff;">
     <div id="ViewerContainerDiv" style="position:absolute;width:100%;height:100%;"></div>
 </div>
 <div style="height:200px;padding-top:20px;">
     <table style="width:0.01%;margin:0 auto;">
         <tr>
-            <td style="padding-right:20px;">
+            <td style="vertical-align:top;padding:0 20px 0 10px;">
+                <div style="width:300px;text-align:justify;">
+                    This page demonstrates how <i>THREE.MeshBasicMaterial</i> works well when applied to Forge Viewer models, but <i>THREE.MeshLambertMaterial</i> does not.
+                    Both materials should be a solid <b style="color:#ff0000;">red</b> color. The viewer3D.js version is 7.87.0.
+                </div>
+            </td>
+            <td style="vertical-align:top;padding-right:20px;">
                 <button id="BasicMaterialButton" style="">Click to apply a MeshBasicMaterial<br/>to the sphere</button>
             </td>
-            <td style="">
+            <td style="vertical-align:top;">
                 <button id="LambertMaterialButton" style="">Click to apply a MeshLambertMaterial<br/>to the sphere</button>
+                <div style="text-align:center;margin-top:5px;">
+                    &uArr;<br/>Why does this<br/>not work?
+                </div>
             </td>
         </tr>
     </table>
@@ -138,7 +161,6 @@
                     fragIds.forEach(fragId => fragList.setMaterial(fragId, basicMaterial));
                     Viewer.impl.invalidate(true);
                 };
-                console.log(basicMaterial);
                 //#####################################################
                 //#####################################################
                 const lambertMaterial = new THREE.MeshLambertMaterial();
@@ -153,7 +175,6 @@
                     fragIds.forEach(fragId => fragList.setMaterial(fragId, lambertMaterial));
                     Viewer.impl.invalidate(true);
                 };
-                console.log(lambertMaterial);
             }
         }
     });
