@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <title>ShaderMaterial Selection Bug</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <style>
+        *:not(button) {
+            margin: 0;
+            border: 0;
+            padding: 0;
+            box-sizing: border-box;
+            color: inherit;
+            font-family: inherit;
+            font-size: inherit;
+            text-align: left;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 10px 10px;
+            border-radius: 10px;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background-color: rgb(23, 25, 29);
+            color: rgb(244, 244, 246);
+            font-size: 14px;
+        }
+
+        body,
+        input,
+        button {
+            font-family: 'Segoe UI', 'Lucida Grande', -apple-system, BlinkMacSystemFont, 'Liberation Sans', sans-serif;
+        }
+
+        table {
+            width: 100%;
+            table-layout: auto;
+            border-collapse: collapse;
+            border-spacing: 0;
+            empty-cells: show;
+        }
+
+        td, th {
+            vertical-align: middle;
+            text-align: center;
+        }
+    </style>
+    <!--<script src="/forge/viewer3D.js"></script>-->
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js?v=7.90.0"></script>
+    <link rel="stylesheet" type="text/css" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=7.90.0"/>
+</head>
+<body style="overflow:hidden;">
+<div style="height:40px;line-height:40px;text-align:center;font-weight:bold;font-size:18px;white-space:nowrap;">
+    Forge Viewer &amp; THREE.ShaderMaterial Selection/Highlighting/Visual Artifacts Example
+</div>
+<div style="position:relative;margin:0 auto;max-width:100%;height:calc(100% - (40px + 310px));background-color:#ffffff;">
+    <div id="ViewerContainerDiv" style="position:absolute;width:100%;height:100%;"></div>
+</div>
+<div style="height:310px;padding:10px 10px 0 10px;">
+    <table style="width:0.01%;margin:0 auto;">
+        <tr>
+            <td style="vertical-align:top;padding:0 20px 0 0;">
+                <div style="width:380px;text-align:justify;font-size:12px;">
+                    This page demonstrates how, after applying a custom <b>THREE.ShaderMaterial</b> to a model in the Forge viewer (<b>version 7.90.0</b>), the following bugs are noticed:<br/><br/>
+                    1. Group selection does not work correctly (Ctrl+Left Click and drag). Almost 100% of the time, the meshes you attempted to select will not be selected.
+                    <a href="/img/selectionbug1.png" target="_blank">click to view screenshot</a><br/><br/>
+                    2. Hovering over a particular mesh with the cursor will sometimes highlight completely different meshes in the scene.
+                    <a href="/img/selectionbug2.png" target="_blank">click to view screenshot</a><br/><br/>
+                    3. Selecting a single mesh will cause what appears to be Z-fighting/stitching between the ShaderMaterial and the selection material. How could this happen on a single mesh?
+                    <b>Note: the Selection Mode must be set to "Leaf Object" or "Last Object" to trigger the Z-fighting.</b>
+                    <a href="/img/selectionbug3.png" target="_blank">click to view screenshot</a>
+                </div>
+            </td>
+            <td style="vertical-align:top;padding-right:20px;">
+                <button id="LmvMaterialButton" style="width:200px;">
+                    Click to apply<br/><b>LMVMeshPhongMaterial</b><br/>to the scene (viewer default)
+                </button>
+            </td>
+            <td style="vertical-align:top;">
+                <button id="ShaderMaterialButton" style="width:180px;">
+                    Click to apply a custom<br/><b>THREE.ShaderMaterial</b><br/>to the scene
+                </button>
+                <div style="text-align:center;margin-top:5px;">
+                    &uArr;<br/><span style="font-size:12px;">Click this button<br/>to activate the bugs.</span>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<!--
+-->
+<script>
+    /**
+     * @param {any} input
+     * @return {boolean}
+     */
+    function __isFunction(input) {
+        return typeof input === "function";
+    }
+
+    /**
+     * @param {any} input
+     * @return {boolean}
+     */
+    function __isIterable(input) {
+        return typeof (input?.[Symbol.iterator]) === "function";
+    }
+
+    /**
+     * @param {any} input
+     * @return {boolean}
+     */
+    function __isObject(input) {
+        return input !== null && typeof input === "object" && !__isIterable(input);
+    }
+
+    function __isString(input) {
+        return typeof (input) === "string";
+    }
+
+    function __isNumber(input) {
+        return typeof (input) === "number";
+    }
+
+    /**
+     * @param {?string} [msg]
+     */
+    function __err(msg) {
+        throw new Error(msg ?? "");
+    }
+
+    /**
+     * @param {?number} [min]
+     * @param {?number} [max]
+     */
+    function __randomInt(min, max) {
+        min ??= 1000000000000000;
+        max ??= 9007199254740991;
+        min <= max || __err("min must be less than or equal to max.");
+        return Math.floor((Math.random() * ((max - min) + 1)) + min);
+    }
+</script>
+<script>
+    const profileSettings =/**@type{ProfileSettings}*/{
+        name: "mySettings",
+        settings: {
+            ambientShadows: false,
+            antialiasing: false,
+            groundReflection: false,
+            groundShadow: false,
+            reverseMouseZoomDir: true
+        },
+        extensions: {
+            load: ["Autodesk.ViewCubeUi"],
+            unload: []
+        }
+    };
+    Autodesk.Viewing.Initializer({env: "Local"}, function () {
+        const viewerContainerDiv = document.getElementById("ViewerContainerDiv");
+        const constructorOptions = {
+            addFooter: undefined,
+            canvasConfig: undefined,
+            containerLayerOrder: undefined,
+            defaultModelStructureTitle: undefined,
+            disabledExtensions: undefined,
+            docStructureConfig: undefined,
+            heightAdjustment: undefined,
+            i18nOpts: undefined,
+            left: undefined,
+            loaderExtensions: undefined,
+            localizeTitle: undefined,
+            localStoragePrefix: undefined,
+            marginTop: undefined,
+            modelBrowserExcludeRoot: false,
+            modelBrowserStartCollapsed: true,
+            navToolsConfig: undefined,
+            screenModeDelegate: undefined,
+            scrollEaseCurve: undefined,
+            scrollEaseSpeed: undefined,
+            startOnInitialize: undefined,
+            theme: undefined,
+            viewerVersion: undefined,
+            extensions: undefined,
+            region: undefined
+        };
+        const viewer = new Autodesk.Viewing.GuiViewer3D(viewerContainerDiv, constructorOptions);
+        //###########################################################################
+        const renderOptions = {
+            useIdBufferSelection: true,
+            webglInitParams: {
+                canvas: null,
+                antialias: false,
+                alpha: true,
+                premultipliedAlpha: true,
+                preserveDrawingBuffer: true,
+                stencil: false,
+                depth: true
+            }
+        };
+        viewer.initialize(renderOptions);
+        viewer.setProfile(new Autodesk.Viewing.Profile(profileSettings));
+        viewer.setBackgroundOpacity(0);
+        viewer.setGroundShadowAlpha(/**@type{float}*/1); // cast to non-existent "float" type because the viewer3D.js developers require it
+        viewer.setGroundShadowColor(new THREE.Color(0, 0, 0));
+        viewer.setGroundShadow(profileSettings.settings.groundShadow);
+        viewer.setSelectionMode(Autodesk.Viewing.SelectionMode.LEAF_OBJECT);
+        (function () {
+            // make the background of the canvas and all parent elements up to the container transparent
+            let Elem = viewer.canvas;
+            while (Elem !== viewerContainerDiv) {
+                Elem.style.backgroundColor = "transparent";
+                Elem.style.backgroundImage = "none";
+                Elem = Elem.parentNode;
+            }
+        })();
+
+        /**
+         * @param {{x:number,y:number,z:number,rotation:number,scaleX:number,scaleY:number,scaleZ:number}} [placement]
+         * @param {function(model:Autodesk.Viewing.Model|RenderModel,fragList:FragmentList|FragList):void} [onLoad]
+         */
+        function GetModelOptions(placement, onLoad) {
+            placement ??= {x: 0, y: 0, z: 0, rotation: 0, scaleX: 1, scaleY: 1, scaleZ: 1};
+            __isFunction(onLoad ??= () => undefined) || __err("onLoad must be a function");
+            let totalFragmentsReceived = 0;
+
+            /**
+             * @param {Autodesk.Viewing.Model|RenderModel} model
+             * @param {number} geomId
+             * @param {number[]} fragIndexes
+             */
+            function onMeshReceived(model, geomId, fragIndexes) {
+                totalFragmentsReceived += fragIndexes.length;
+                const fragList =/**@type{FragmentList|FragList}*/model.getFragmentList();
+                const totalFragmentsExpected = fragList.fragments.fragId2dbId.length;
+                totalFragmentsReceived === totalFragmentsExpected && onLoad(model, fragList);
+            }
+
+            /**
+             * @param {?{x:number,y:number,z:number,rotation:number,scaleX:number,scaleY:number,scaleZ:number}} o
+             * @return {LmvMatrix4}
+             */
+            function GetPlacementTransform(o) {
+                __isObject(o) || __err("o must be an object");
+                __isNumber(o.x) || __err("o.x must be a number");
+                __isNumber(o.y) || __err("o.y must be a number");
+                __isNumber(o.z) || __err("o.z must be a number");
+                __isNumber(o.rotation) || __err("o.rotation must be a number");
+                __isNumber(o.scaleX) || __err("o.scaleX must be a number");
+                __isNumber(o.scaleY) || __err("o.scaleY must be a number");
+                __isNumber(o.scaleZ) || __err("o.scaleZ must be a number");
+                const TransformMatrix = new THREE.Matrix4().setPosition(new THREE.Vector3(o.x, o.y, o.z));
+                const RotationMatrix = new THREE.Matrix4().makeRotationZ(o.rotation);
+                const ScaleMatrix = new THREE.Matrix4().makeScale(o.scaleX, o.scaleY, o.scaleZ);
+                return TransformMatrix.multiply(new THREE.Matrix4().multiplyMatrices(RotationMatrix, ScaleMatrix));
+            }
+
+            return {
+                createWireframe: false,
+                disable3DModelLayers: true,
+                disablePrecomputedNodeBoxes: true,
+                keepCurrentModels: true,
+                loadAsHidden: false,
+                loadInstanceTree: true,
+                onMeshReceived: onMeshReceived,
+                placementTransform: GetPlacementTransform(placement),
+                globalOffset: {x: 0, y: 0, z: 0},
+                packNormals: true,
+                preserveView: false,
+                skipExternalIds: true,
+                skipHiddenFragments: true,
+                skipPrefs: true,
+                underlayRaster: false,
+                useConsolidation: false,
+            };
+        }
+
+        const models =/**@type{(Autodesk.Viewing.Model|RenderModel)[]}*/[];
+        const fragLists =/**@type{(FragmentList|FragList)[]}*/[];
+
+        function TryFinishLoading(model, fragList) {
+            models.push(model);
+            fragLists.push(fragList);
+            models.length === 3 && OnFullyLoaded(viewer, models, fragLists);
+        }
+
+        const url = "variety001/output.svf";
+        viewer.loadModel(url, GetModelOptions({x: 0, y: -40, z: 0, rotation: 0, scaleX: 1, scaleY: 1, scaleZ: 1}, function (model, fragList) {
+            TryFinishLoading(model, fragList);
+        }), () => undefined, function () {
+            console.error("could not load model");
+        });
+        viewer.loadModel(url, GetModelOptions({x: 0, y: 40, z: 0, rotation: 0, scaleX: 1, scaleY: 1, scaleZ: 1}, function (model, fragList) {
+            TryFinishLoading(model, fragList);
+        }), () => undefined, function () {
+            console.error("could not load model");
+        });
+        viewer.loadModel(url, GetModelOptions({x: 0, y: 0, z: 0, rotation: 0, scaleX: 1, scaleY: 1, scaleZ: 1}, function (model, fragList) {
+            TryFinishLoading(model, fragList);
+        }), () => undefined, function () {
+            console.error("could not load model");
+        });
+    });
+
+    /**
+     * @param {Autodesk.Viewing.GuiViewer3D} viewer
+     * @param {(Autodesk.Viewing.Model|RenderModel)[]} models
+     * @param {(FragmentList|FragList)[]} fragLists
+     */
+    function OnFullyLoaded(viewer, models, fragLists) {
+        const MatMan =/**@type{MaterialManager}*/viewer.impl.matman();
+        MatMan.defaultMaterial.packedNormals = true;
+        const LmvMaterialButton = document.getElementById("LmvMaterialButton");
+        const ShaderMaterialButton = document.getElementById("ShaderMaterialButton");
+        const customMaterial = new THREE.ShaderMaterial({
+            vertexShader: `#include <pack_normals>\nvoid main() {\ngl_Position = projectionMatrix * modelViewMatrix * vec4(position.xyz, 1.0);\n}`,
+            fragmentShader: `#include <id_decl_frag>\nuniform vec3 color;\nvoid main() {\ngl_FragColor = vec4(color, 1.0);\n#include <final_frag>\n}`,
+            uniforms: {color: {type: 'v3', value: new THREE.Vector3(0.5, 0, 0)}}
+        });
+        customMaterial.needsUpdate = true;
+        MatMan.addNonHDRMaterial(__randomInt().toString(), customMaterial);
+        LmvMaterialButton.onclick = function () {
+            for (const fragList of fragLists) {
+                const fragIds = Object.keys(fragList.fragments.fragId2dbId);
+                fragIds.forEach(x => fragList.setMaterial(x, MatMan.defaultMaterial));
+            }
+            viewer.impl.invalidate(true);
+        };
+        ShaderMaterialButton.onclick = function () {
+            for (const fragList of fragLists) {
+                const fragIds = Object.keys(fragList.fragments.fragId2dbId);
+                fragIds.forEach(x => fragList.setMaterial(x, customMaterial));
+            }
+            viewer.impl.invalidate(true);
+        };
+    }
+</script>
+</body>
+</html>
